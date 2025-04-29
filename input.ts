@@ -1,20 +1,53 @@
 /**
- * Parse action input into a some proper thing.
+ * These types should match to what `cargo-audit` outputs in a JSON format.
+ *
+ * See `rustsec` crate for structs used for serialization.
  */
 
-import { input } from '@clechasseur/rs-actions-core';
-
-// Parsed action input
-export interface Input {
-    token: string;
-    ignore: string[];
-    workingDirectory: string;
+export interface Report {
+    database: DatabaseInfo;
+    lockfile: LockfileInfo;
+    vulnerabilities: VulnerabilitiesInfo;
+    warnings: Warning[] | { [key: string]: Warning[] };
 }
 
-export function get(): Input {
-    return {
-        token: input.getInput('token', { required: true }),
-        ignore: input.getInputList('ignore', { required: false }),
-        workingDirectory: input.getInput('working-directory', { required: false }) ?? '.',
-    };
+export interface DatabaseInfo {
+    'advisory-count': number;
+    'last-commit': string;
+    'last-updated': string;
+}
+
+export interface LockfileInfo {
+    'dependency-count': number;
+}
+
+export interface VulnerabilitiesInfo {
+    found: boolean;
+    count: number;
+    list: Vulnerability[];
+}
+
+export interface Vulnerability {
+    advisory: Advisory;
+    package: Package;
+}
+
+export interface Advisory {
+    id: string;
+    package: string;
+    title: string;
+    description: string;
+    informational: undefined | string | 'notice' | 'unmaintained';
+    url: string;
+}
+
+export interface Package {
+    name: string;
+    version: string;
+}
+
+export interface Warning {
+    kind: 'unmaintained' | 'informational' | 'yanked' | string;
+    advisory: Advisory;
+    package: Package;
 }
